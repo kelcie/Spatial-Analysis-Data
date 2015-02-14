@@ -1,0 +1,29 @@
+Look at spatial patterns and the macroecology 
+of marine fishes that are distributed from Alaska to Baja, California.
+ First I will download a large data set of marine fishes. 
+ Download the data of different temperature, salinity, carbon dioxide, oxygen data from website. 
+ Download SAM for spatial analysis to test correlation between environmental variables and spatial distance and graph it in R using a map.  
+ Use the model in Heath et al. 2008 to 
+ look at the effects of climate change, including temperature change, spatials patterns of adults, include recruitment as a longevity for slow growing fishes for developments, and population structure of many different species across the same ecological range. 
+ Also look at fishing efforts from populations that are fished that range from Alaska to Baja California and see if that influences spatial dynamics. 
+Project Pseudocode
+
+#Download marine fishes from GBIF
+#Download elasmobranchs, and other order names with thousands of species
+#import raw data into text file 
+#write a for loop that parses the data into catalog #, order, genus, species, latitude, longitude, # of occurrences, year, reference
+#Download climate data from NOAA at this website http://www7.ncdc.noaa.gov/CDO/cdomarineinv.cmd?dataset=Marine&shiplist=%20%20all&bintype=10&type=3&datequerytype=RANGE&outform=4&startYear=1990&startMonth=12&startDay=30&startHour=0&endYear=2014&endMonth=12&endDay=30&endHour=0&bins=507
+#Parse the NOAA climate data by year, temperature, salinity, depth, wind, carbon dioxide, oxygen , and location
+#Download iMAP software in R and make a map 
+#Import parsed data into R 
+#Map the species that range from Baja, California to Alaska and add color 
+#write an R code that specifies everything
+
+# Download the Heath et al. 2008 Spatial analysis in R 
+#test different environmental variables on latitude and longitude 
+#write a code that can run a spatial analysis ANOVA
+#after plotting everything and see 
+
+#How do anthropogenic infuences affect the genetic structure of organisms that have an ecological range from Baja,California to Alaska and look at the differences among species.
+
+
