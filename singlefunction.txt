@@ -1,0 +1,30 @@
+#####################
+Setting a markdown file
+
+getwd()
+setwd("/Users/chiquillo2/Documents/UCLA/FirstYEAR /Winter_2015/C234/SpatialDataProject/BigSkate_GBIF_2.19.15")
+
+bs_occurrence<- read.table("occurrence.txt", header= TRUE, sep= "\t", na.strings= "NA", quote= "", fill= TRUE) #fill and header true shows that they have unequal length and blank fills are implicitly added, na.strings is character vector of strings are considered missing values, quote is only to disable quoting altogether
+
+#occurrence$V78
+
+bigskate_new_occurrence <- occurrence[,c("gbifID", "decimalLatitude", "decimalLongitude", "year", "species")]
+
+#occurrence[,c("V1", "V66", "V78", "V79")] #brackets with a comma indicate coordinates for rows and columns, left is rows, right is columns, c() cbind pulls it together
+
+#head(occurrence[,c('V1', 'V66', "V78", "V79")])
+
+head(bigskate_new_occurrence)
+
+#############################
+
+#Now writing a function: 
+
+bigskate_func <- function(file) {
+  bs_occurrence<- read.table(file, header= TRUE, sep= "\t", na.strings= "NA", quote= "", fill= TRUE) #fill and header true shows that they have unequal length and blank fills are implicitly added, na.strings is character vector of strings are considered missing values, quote is only to disable quoting altogether
+  bigskate_new_occurrence <- bs_occurrence[,c("gbifID", "decimalLatitude", "decimalLongitude", "year", "species")]
+  return(bigskate_new_occurrence)
+}
+
+
+bigskate_func('occurrence.txt')
