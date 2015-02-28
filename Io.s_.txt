@@ -1,0 +1,38 @@
+Notes on spatial data operations in R 
+#PlEASE PUT THIS INTO R 
+
+quartz() #puts in a new window
+map1 <- map("worldHires",c("usa", "Canada", "Mexico"), xlim=c(-180,0), ylim=c(10,80), col="blue", fill=TRUE) #map of the west coast   
+title("Big Skate Occurrence") #title of the figure
+points(x= bin#1$decimalLongitude, y) #this makes a map with occurrence points on it 
+
+
+#Putting a temperature file and switching it to a raster file 
+tpath <- "~/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/ClimateDATA/MARSPEC_5m/Monthly_Variables_5m/Temperatures/sst01_5m" #the path where the temperature data is 
+
+tgg <- new("GDALReadOnlyDataset", tpath) #
+getDriver(tgg) #the object inhertied from GDAL 
+getDriverLongName(getDriver(tgg))
+
+
+xxx<-asSGDF_GROD(tgg) #function of GDAL
+
+class(xxx)
+
+#(CRS) arguments: +proj=longlat +ellps=WGS84
+# +towgs84=0,0,0,0,0,0,0 +no_defs 
+rrr <- raster(xxx), filename= "rrr.bil"
+
+quartz()
+rrr
+class(rrr)
+plot(rrr)
+
+bigskate_lat_lon <- bs_occurrence[,c("decimalLongitude", "decimalLatitude")]
+bigskate_lat_lon1 <- bigskate_lat_lon[complete.cases(bigskate_lat_lon),]
+bigskate_lat_lon1
+
+bs_space <- SpatialPointsDataFrame( bigskate_lat_lon1[ c("decimalLongitude", "decimalLatitude")], data= data.frame(bigskate_lat_lon1), proj4string= CRS("+proj=longlat +datum=WGS84"))
+
+head(bs_space)
+class(bs_space) #this cleans up the data for NAs 
