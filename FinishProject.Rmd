@@ -1,0 +1,160 @@
+---
+title: "FinalProject_c234"
+author: "Kelcie Chiquillo"
+date: "March 19, 2015"
+output: html_document
+---
+
+##Final Project
+ 
+##What is a skate? 
+ 
+A skate is a dorsally compressed cartilaginous fish found on the Eastern Pacific. Their range is from Alaska to the Gulf of California. Skates are related to sharks and rays. Luckily, unlike rays, it doesn't have a barb, so it can't sting you. 
+
+##Why skates?
+![trawl image](http://cdn.s3.webcontentor.com/OFFICE/SF001/files/images/110702062304_fishing1.jpg)
+
+Skates live deep in the ocean, roughly 100meters deep. They are long lived species that are especially vulnerable to overfishing. Like the finning of sharks their wings are cut off and the carcasses are thrown back into the deep.Since they live so deep they are extremely hard to find and it's important to understand where they are and where they will go for conservation managment purposes.
+
+##The Goal  
+
+The goal of this research is to understand where they are now, what climate factors are they more susceptible to and where they will be in the future 
+
+
+##Download occurrence data and save in a directory on your computer 
+
+```{r}
+
+##Getting GBIF data from the web 
+##Manipulating of a significant data set
+
+
+setwd("~/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/BigSkate_GBIF_2.19.15")
+
+bs_occurrence<- read.table("occurrence.txt", header= TRUE, 
+sep= "\t", na.strings= "NA", quote= "", fill= TRUE) #This is where I read the table into R 
+#fill and header true shows that they have unequal length and blank fills are implicitly added, na.strings is character vector of strings are considered missing values, quote is only to disable quoting altogether
+
+bigskate_new_occurrence <- bs_occurrence[,c("gbifID", 
+"decimalLatitude", "decimalLongitude", "year", "species")] 
+
+bigskate_lat_lon <- bigskate_new_occurrence[,2:3] #This puts the lat lon data into columns, specifically takes the columns 2 and 3 from the bigskate_new_occurrence and reassigns them into a new object 
+
+bigskate_lat_lon1 <- bigskate_lat_lon[1:561,] #removes the last column, cause it had weird occurrence points
+```
+##The second way of downloading GBIF data through R 
+
+```{r, eval= FALSE}
+
+
+library(dismo) #download this package first
+install.packages("devtools") #this is to install rgbif from git_hub, instead of downloading from gbif.org we can directly download the species we want in R 
+devtools::install_github("ropensci/rgbif") #goes to the ropensci website and the rgbif directory
+library("rgbif") #this is the package that allows R to go through GBIF
+
+
+Rbi <- occ_search(scientificName= "Raja binoculata", limit = 50) #use the function occ_search to look for the name and you give a limit of how many occurrence points you want
+write.table(Rbi, "Rbi.txt") #write the table to into a new txt file
+
+```
+##Plotting GBIF Data points 
+
+Plot the GBIF Data points. I ended up downloading the entire data from the GBIF website inputing it into R and then using that data to make a map.
+
+```{r}
+library(maps) #all the libraries for maps
+library(mapdata)
+library(rworldmap) #this one is especially important
+
+map1 <- map("worldHires",c("usa", "Canada", "Mexico"),xlim=c(-180,0), ylim=c(10,80), col="seashell1", fill=TRUE) #map of the west coast, using the function map and "world hires" allows you to get a 2 dimensional map of whatever countries you want. I use the cbind function to only map USA, Canada and Mexico   
+title("Big Skate occurrence from 1889- 2013") #title of the figure
+points(x=bigskate_lat_lon1$decimalLongitude, y=bigskate_lat_lon1$decimalLatitude,col='seagreen',cex=0.75, pch= 20) # plot the data points on map1 with big skate data longitude at the x and latitude is the y axis and the color is seagreen and cex is the relavent scale of the points, pch is the shape of your points 
+
+```
+##Converting Lat and Lon from GBIF to Spatial Points Data Frame
+
+Now that I have a GBIF points on a map, I know want to rasterize the spatial points. What this means is that I want to convert the spatial points to a raster file so that it matches up with my climate points, which come as raster files. 
+```{r}
+library(sp) #a library that constructs spatialdataFrame from geometry and attributes
+
+bs_space <- SpatialPointsDataFrame(bigskate_lat_lon1[ c("decimalLongitude", "decimalLatitude")],data= data.frame(bigskate_lat_lon1),proj4string= CRS("+proj=longlat +datum=WGS84")) #here we are using the spatial points data frame function to change the lat and lon to the same geometric frame as  our climate data and the proj4string allows us to specify that it is a map and this does a point in polygon query 
+
+raster::raster(bs_space) #from the raster package :: use raster function for bs_space
+plot(bs_space) #now plot it 
+class(bs_space) #make sure the class description is the same
+```
+
+##Download Climate data from MARine SPatial ECology 
+
+Now we want to rasterize the climate data 
+
+>-Go to www.marspec.org
+
+>-MARSPEC 5m.7z:
+
+    - ocean climate layers at low resolution
+    - recommeneded for global studies
+    - ESRI raster grids (shape GIS file) 
+    - approxx 10km grid cell sizes at the equator
+    
+
+##Plotting Climate Data with Rasterized climate data
+
+```{r}
+library(rgdal) #this contains functions that rasterize dataset
+library(raster) #a library that contains functions that divide regions into pixels or cells
+
+
+setwd("~/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/ClimateDATA/reformatted3") #sets the directory to reformatted 3, here is where I took the kml files and converted them to .tif files in a program called ARCGis so that I could map the material. 
+
+marspec.dir1 = ("~/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/ClimateDATA/reformatted3") #this reformatted files were converted from a kmz to kml to .bil extension files
+
+files= list.files(marspec.dir1, pattern= "tif$") #compiles the files together into a object that could be used to rasterize
+
+marspec.rasters = stack(files[1:18])#changes the climate data to a raster file using the stack function
+
+#writeRaster(marspec.rasters, filename= "marspec.rasters1.grd")
+bs_brick <- brick("marspec.rasters1.grd") #this works
+
+for (ii in 1:18){
+plot(marspec.rasters, ii)
+points(bs_space, col= 'red', cex= 0.5)
+} #writing a for loop that plots all of the climate layers 
+
+```
+##TABLE of all the climate layers
+
+```{r}
+
+setwd("~/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/ClimateDATA/MARSPEC_5m")
+climate_table <- read.csv(file="table1_climate.csv", head= TRUE, sep=",") #reads in csv table of all the climate variables
+
+climate_table
+
+```
+
+##Maxent Function 
+
+This maxent function allows us to compare which climate variable is most associated with our occurrence data. 
+
+```{r}
+#maxent_bs <- maxent(bs_brick, p =bs_space , na.rm= TRUE) 
+#the command above is commented out because it does not knit, but at the bottom of the page there is a link that will take you to the maxent results.  
+#maxent_bs
+
+```
+
+##Conclusions
+
+To run the analysis I had to use the maxent function on maxent.jar on the GUI interface and in R, I found that biogeo1 which is actually bathymetry is most closely associated with the big skate occurrence data. Which makes sense, because skates are deep dwelling species that live on the continental shelves. When I remove bathymetry and other variable that are associated with the deep from the analysis, the most correlated variables are is the "maximum month salinity" and "sea surface temperature of the coldest ice free month". Which is pretty interesting for two reasons: first, salinity is predicted to increase due to climate change and how that affects their distribution will be interesting. Second, climate change is predicted for the earth to get warmer causing ice to melt and less ice to form, when the coldest ice free month is weakly associated with the occurrence data points of skates, it may suggests that skates have a certain thermal tolerance and it would be interesting to see a range of temperatures they are most tolerant too. 
+
+Some caveats: is that most of these climate layers are sea surface temperatures and sea surface salinity. These are deep dwelling species and so the temperature that is at the surface is not the same as the temperature they are experiencing. I could take temperatures at each layer from the bottom of the ocean to the surface and use an analysis to see their thermal range. Alternativley, I could use landscape genetics to test for their thermal range and look at the how the genes are distributed across the eastern pacific. 
+
+It would be interesting to compare the predictive models of where they will be to occurrence data and genetic data to get a complete answer. 
+
+
+
+[!maxent_analysis](file:///Users/chiquillo2/Documents/UCLA/FirstYEAR/Winter_2015/C234/SpatialDataProject/ClimateDATA/MaxentResults/Maxent_Raja_binoculata_4.html)
+
+Click on the link above and it will show you the maxent results. 
+
